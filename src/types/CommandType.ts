@@ -3,9 +3,9 @@ export enum CommandTypes {
     TextCommand
 }
 
-interface SingleVoiceCommand {
+export interface SingleVoiceCommand {
     id: number;
-    commandStorage: string;
+    uuid: string;
 }
 
 export interface Command {
@@ -22,4 +22,9 @@ export const defaultCommand: Command = {
     action: '',
     VoiceCommandList: [],
     TriggerWord: ''
+}
+
+export const defaultSingleVoiceCommand: SingleVoiceCommand = {
+    id: -1,
+    uuid: ''
 }

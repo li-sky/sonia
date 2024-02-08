@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { CommandTypes, Command } from '../../types/CommandType.ts';
+import { CommandTypes, Command, SingleVoiceCommand  } from '../../types/CommandType.ts';
 
 
 const voiceCommandsSlice = createSlice({
@@ -28,7 +28,7 @@ const voiceCommandsSlice = createSlice({
       }
     },
     addVoiceCommandSound: (state, action) => {
-      state.cmds[action.payload.id].VoiceCommandList = [...state.cmds[action.payload.id].VoiceCommandList, action.payload.sound];
+      state.cmds[action.payload.id].VoiceCommandList = [...state.cmds[action.payload.id].VoiceCommandList, {id: state.cmds[action.payload.id].VoiceCommandList.length, uuid: action.payload.uuid}];
     },
     deleteVoiceCommandSound: (state, action) => {
       state.cmds[action.payload.id].VoiceCommandList = state.cmds[action.payload.id].VoiceCommandList.filter(sound => sound.id !== action.payload.sound.id);

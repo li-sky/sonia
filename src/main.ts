@@ -1,3 +1,5 @@
+import installExtension, { REDUX_DEVTOOLS, REACT_DEVELOPER_TOOLS } from 'electron-devtools-assembler';
+
 import { app, BrowserWindow } from 'electron';
 import path from 'path';
 
@@ -8,9 +10,12 @@ if (require('electron-squirrel-startup')) {
 
 const createWindow = () => {
   // Create the browser window.
+  
   const mainWindow = new BrowserWindow({
-    width: 1300,
+    width: 1350,
     height: 600,
+    minHeight: 600,
+    minWidth: 1350,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
     },
@@ -49,6 +54,16 @@ app.on('activate', () => {
   }
 });
 
+app.whenReady().then(() => {
+  installExtension(REDUX_DEVTOOLS)
+      .then((name) => console.log(`Added Extension:  ${name}`))
+      .catch((err) => console.log('An error occurred: ', err));
+  installExtension(REACT_DEVELOPER_TOOLS)
+      .then((name) => console.log(`Added Extension:  ${name}`))
+      .catch((err) => console.log('An error occurred: ', err));
+});
+
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
-require('./utils/record')
+import './utils/record';
+import './utils/simpleTTS';

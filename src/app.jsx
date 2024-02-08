@@ -3,13 +3,13 @@ import { createRoot } from 'react-dom/client';
 import { HashRouter as Router, Route, Link, Routes, NavLink, useMatch } from 'react-router-dom';
 import { Button, Card, List, Navbar, Typography } from '@material-tailwind/react';
 import { Provider } from 'react-redux';
-import store from './store/store.ts';
+import store from './store/store';
 import "@mui/icons-material";
 
 
 import { routes } from "./routes";
 
-import { CustomNavLink } from "./components/customNavLink.jsx";
+import { CustomNavLink } from "./components/customNavLink";
 
 
 const App = () => {

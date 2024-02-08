@@ -22,9 +22,11 @@
     "@electron-forge/maker-zip": "^7.2.0",
     "@electron-forge/plugin-auto-unpack-natives": "^7.2.0",
     "@electron-forge/plugin-vite": "^7.2.0",
+    "@types/fluent-ffmpeg": "^2.1.24",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "electron": "28.2.1",
+    "electron-devtools-assembler": "^1.2.0",
     "eslint": "^8.56.0",
     "eslint-plugin-import": "^2.29.1",
     "react-redux": "^9.1.0",
@@ -40,8 +42,12 @@
     "@mui/icons-material": "^5.15.8",
     "@mui/material": "^5.15.7",
     "@reduxjs/toolkit": "^2.1.0",
+    "electron-log": "^5.1.1",
     "electron-squirrel-startup": "^1.0.0",
+    "fluent-ffmpeg": "^2.1.2",
+    "node-record-lpcm16": "^1.0.1",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.22.0"
+    "react-router-dom": "^6.22.0",
+    "uuid": "^9.0.1"
   }
 }

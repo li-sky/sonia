@@ -14,36 +14,87 @@ import {
     Delete,
 } from "@mui/icons-material";
 import { CSSTransition } from "react-transition-group";
+import { v1 as uuidv1 } from "uuid";
+
 import KeybindSetter from './KeybindSetter.tsx';
 import "./VoiceCommandRow.css";
 
 import { Command } from "../types/CommandType";
 import { RootState } from "../store/store";
 import { useSelector, useDispatch } from "react-redux";
-import { addVoiceCommand, updateVoiceCommandText, updateVoiceCommandTextAudioSelector} from "../features/voiceCommands/voiceCommandsSlice.ts";
+import { addVoiceCommand, deleteVoiceCommand, updateVoiceCommandText, updateVoiceCommandTextAudioSelector, addVoiceCommandSound} from "../features/voiceCommands/voiceCommandsSlice.ts";
 import { CommandTypes } from "../types/CommandType.ts";
+import { ipcRenderer } from 'electron';
+import { current } from "@reduxjs/toolkit";
+
 
 const VoiceCommandRow: React.FC<Command> = ({ id, ...otherProps }) => {
 	const dispatch = useDispatch();
 	const thisCommandType : CommandTypes = useSelector((state: RootState) => state.voiceCommands.cmds[id].commandType);
 
 	const handleSwitchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		dispatch(updateVoiceCommandTextAudioSelector({id: id, commandType: event.target.checked === true ? CommandTypes.VoiceCommand : CommandTypes.TextCommand, VoiceCommandList: [0]}));
+		dispatch(updateVoiceCommandTextAudioSelector({id: id, commandType: event.target.checked === true ? CommandTypes.TextCommand : CommandTypes.VoiceCommand, VoiceCommandList: [0]}));
 	};
+		
+	const [currentlySelectedVoiceLine, setCurrentlySelectedVoiceLine] = useState(-1);
 
 	const recordAudioAndSave = (event: React.MouseEvent<HTMLButtonElement>) => {
-		const { ipcRenderer } = require('electron');
+		navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+			const mediaRecorder = new MediaRecorder(stream);
+			let audioChunks: (ArrayBuffer)[] = [];
 
-		// 请求开始录音
-		ipcRenderer.invoke('start-recording');
-		
-		// 接收录音数据
-		ipcRenderer.on('recording-data', (event, chunk) => {
-		  // 处理录音数据...
+			mediaRecorder.addEventListener("dataavailable", event => {
+				const reader = new FileReader();
+				reader.readAsArrayBuffer(event.data);
+				reader.onloadend = () => {
+					audioChunks.push(reader.result as ArrayBuffer);
+					console.log(audioChunks);
+					const arrayBuffer = audioChunks[0];
+					let audio_id = uuidv1();
+					console.log(audio_id, arrayBuffer);
+					window.electron.sendAudioData(audio_id.toString(), arrayBuffer);
+					
+					dispatch(addVoiceCommandSound({id: id, uuid: audio_id}));
+					setCurrentlySelectedVoiceLine(otherProps.VoiceCommandList.length);
+				};
+			});
+
+			mediaRecorder.addEventListener("start", () => {
+				audioChunks = [];
+			});
+
+			mediaRecorder.addEventListener("stop", () => {
+				
+			});
+
+			mediaRecorder.start();
+
+			setTimeout(() => {
+				mediaRecorder.stop();
+			}, 3000);
+
 		});
-	}
+	};
 
-	const [currentlySelectedVoiceLine, setCurrentlySelectedVoiceLine] = useState(-1);
+
+	const playAudio = async (event: React.MouseEvent<HTMLButtonElement>) => {
+		if (otherProps.commandType === CommandTypes.VoiceCommand) {
+			if (currentlySelectedVoiceLine !== -1) {
+				let ret = await window.electron.fetchAudioData(otherProps.VoiceCommandList[currentlySelectedVoiceLine].uuid);
+				console.log(ret);
+				if (ret !== null) {
+					// ret is an array. We need to convert it to a buffer
+					const blob = new Blob([ret], { type: 'audio/mp3' });
+					const url = URL.createObjectURL(blob);
+					const audio = new Audio(url);
+					audio.play();
+				}
+			}
+		} else {
+			speechSynthesis.speak(new SpeechSynthesisUtterance(otherProps.TriggerWord));
+		}
+	};
+
 
 	return (
 		<div className="flex-col" id={id}>
@@ -58,7 +109,7 @@ const VoiceCommandRow: React.FC<Command> = ({ id, ...otherProps }) => {
 				onChange={handleSwitchChange}
 				id={"VoiceLine" + id}
 				crossOrigin={undefined}
-				checked={otherProps.commandType === CommandTypes.VoiceCommand}
+				checked={otherProps.commandType === CommandTypes.TextCommand}
 				/>
 				<div className="flex items-center ml-2 mr-2 whitespace-nowrap">
 					词汇
@@ -66,7 +117,7 @@ const VoiceCommandRow: React.FC<Command> = ({ id, ...otherProps }) => {
 				<div className="relative flex items-center space-x-4">
 					<div className="flex relative flex-col items-center justify-center min-w-80">
 						<CSSTransition
-							in={otherProps.commandType === CommandTypes.VoiceCommand}
+							in={otherProps.commandType === CommandTypes.TextCommand}
 							timeout={500}
 							classNames="fade-right"
 							unmountOnExit
@@ -76,7 +127,7 @@ const VoiceCommandRow: React.FC<Command> = ({ id, ...otherProps }) => {
 							</div>
 						</CSSTransition>
 						<CSSTransition
-							in={!(otherProps.commandType === CommandTypes.VoiceCommand)}
+							in={!(otherProps.commandType === CommandTypes.TextCommand)}
 							timeout={500}
 							classNames="fade-left"
 							unmountOnExit
@@ -88,11 +139,11 @@ const VoiceCommandRow: React.FC<Command> = ({ id, ...otherProps }) => {
 										className="!min-w-[100px]" 
 										placeholder={undefined} 
 										value={currentlySelectedVoiceLine.toString()} 
-										onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setCurrentlySelectedVoiceLine(parseInt(event.target.value))}
+										onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setCurrentlySelectedVoiceLine(parseInt(event))}
 									>
 										{otherProps.VoiceCommandList.length > 0 ? (
-											otherProps.VoiceCommandList.map((id: number) => (
-												<Option key={id.toString()} value={id.toString()}>{id.toString()}</Option>
+											otherProps.VoiceCommandList.map(({id, uuid}) => (
+												<Option key={uuid} id={id} value={id.toString()}>{id.toString()}</Option>
 											))
 										) : (
 											<Option value="-1" disabled>新增音频...</Option>
@@ -111,7 +162,7 @@ const VoiceCommandRow: React.FC<Command> = ({ id, ...otherProps }) => {
 										>
 											<Mic />
 										</Button>
-										<Button color="cyan" ripple={true} id={"DeleteButtonSound" + id} placeholder={undefined}>
+										<Button color="cyan" ripple={true} id={"DeleteButtonSound" + id} placeholder={undefined} onClick={() => {dispatch(deleteVoiceCommand({id: currentlySelectedVoiceLine}))}}>
 											<Delete />
 										</Button>
 									</ButtonGroup>
@@ -120,13 +171,13 @@ const VoiceCommandRow: React.FC<Command> = ({ id, ...otherProps }) => {
 						</CSSTransition>
 					</div>
 					<ButtonGroup className="flex lm-20" color="cyan"  placeholder={undefined}>
-						<Button color="cyan" ripple={true} id={"PlayButton" + id}  placeholder={undefined}>
+						<Button color="cyan" ripple={true} id={"PlayButton" + id}  placeholder={undefined} onClick={playAudio}>
 							<PlayCircleOutline />
 						</Button>
 						<Button color="cyan" ripple={true} id={"AddButton" + id}  placeholder={undefined} onClick={() => {dispatch(addVoiceCommand({id: id}))}}>
 							<Add />
 						</Button>
-						<Button color="cyan" ripple={true} id={"DeleteButton" + id}  placeholder={undefined}>
+						<Button color="cyan" ripple={true} id={"DeleteButton" + id}  placeholder={undefined} onClick={() => {dispatch(deleteVoiceCommand(id))}}>
 							<Delete />
 						</Button>
 					</ButtonGroup>

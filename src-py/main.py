@@ -50,7 +50,7 @@ def updateState():
 def initState():
     global state
     print('initState', state)
-    return jsonify(state)
+    return jsonify(state["voiceCommands"])
 
 @app.route('/getOtherSettingsState', methods=['GET'])
 def getOtherSettingsState():

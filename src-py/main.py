@@ -24,14 +24,13 @@ state = {
     "otherSettings": {
         "language" : "zh-cn",
         "theme" : "light",
-        "voiceCommandBackends" : [],
+        "voiceCommandBackends" : ["A", "B"],
         "currentVoiceCommandBackend" : "",
         "voiceCommandBackendSettings" : {}
     }
 }
 
 settingspath = os.path.expandvars('%APPDATA%/sonia/sonia/settings.json')
-
 
 @app.route('/updateState', methods=['POST'])
 def updateState():
@@ -51,7 +50,7 @@ def updateState():
 def initState():
     global state
     print('initState', state)
-    return jsonify(state["voiceCommands"])
+    return jsonify(state)
 
 @app.route('/getOtherSettingsState', methods=['GET'])
 def getOtherSettingsState():
@@ -71,12 +70,12 @@ def setRecognitionBackend():
         os.makedirs(os.path.dirname(settingspath), exist_ok=True)
         with open(settingspath, 'w') as f:
             json.dump(state, f)
-    return jsonify(state)
+    return jsonify(state["otherSettings"]["currentVoiceCommandBackend"])
 
 @app.route('/getRecognitionBackend', methods=['GET'])
 def getRecognitionBackend():
     global state
-    return jsonify(state["otherSettings"]['recognitionBackend'])
+    return jsonify(state["otherSettings"]['voiceCommandBackends'])
 
 @app.route('/setRecognitionState', methods=['POST'])
 def setRecognitionState():

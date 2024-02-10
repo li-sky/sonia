@@ -1,13 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { setInitState, setCurrentVoiceCommandBackend, setRecognitionStarted } from '../features/otherSettings/otherSettingsSlice.ts';
+import { setInitState, setCurrentVoiceCommandBackend, setRecognitionStarted } from '../features/otherSettings/otherSettingsSlice';
 import { RootState } from '../store/store';
-import { portNumber, initPortNumber } from '../utils/pass-port-render.js';
-import { Select, Switch, Typography } from '@material-tailwind/react';
+import { portNumber, initPortNumber } from '../utils/pass-port-render';
+import { Select, Switch, Typography, Option } from '@material-tailwind/react';
 
 const OtherSettingsPage = () => {
   const dispatch = useDispatch();
-
 
   useEffect(() => {
     initPortNumber().then(() => {
@@ -21,10 +20,13 @@ const OtherSettingsPage = () => {
   const backends =  useSelector((state: RootState) => state.otherSettings.voiceCommandBackends);
   const started = useSelector((state: RootState) => state.otherSettings.isRecognitionStarted);
   const currentBackend = useSelector((state: RootState) => state.otherSettings.currentVoiceCommandBackend);
+  
+  const [backendOption, setBackendOPtion] = useState<string>("");
 
-  const changeBackend = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const backend = event.target.value;
-    fetch('http://localhost:'+portNumber+'/setVoiceCommandBackend', {
+  const changeBackend = (backend: string) => {
+    console.log(backend);
+    setBackendOPtion(backend);
+    fetch('http://localhost:'+portNumber+'/setRecognitionBackend', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -45,6 +47,7 @@ const OtherSettingsPage = () => {
     });
     dispatch(setRecognitionStarted(value));
   }
+  
 
   return (
     <div>
@@ -56,13 +59,12 @@ const OtherSettingsPage = () => {
         </div>
         <div className="flex justify-center items-center h-20 bg-cyan-500 text-white text-2xl cursor-pointer">
             <label>选择识别后端</label>
-            <Select color="cyan" size="lg" onChange={changeBackend} value={currentBackend}>
+            <Select color="cyan" size="lg" onChange={changeBackend} label="Backend">
                 {backends.length === 0 ?
-                (<option value="无识别后端" key="-1" disabled>无识别后端</option>)
-                : (backends.map(
-                    (backend) => <option value={backend} key={backend}>
-                        {backend}
-                        </option>))}
+                (<Option value="无识别后端" key="-1" disabled>无识别后端</Option>)
+                : backends.map((backend, index) => (
+                    <Option value={backend}>{backend}</Option>
+                ))}
             </Select>
         </div>
       </div>

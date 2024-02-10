@@ -3,6 +3,8 @@ import installExtension, { REDUX_DEVTOOLS, REACT_DEVELOPER_TOOLS } from 'electro
 import { app, BrowserWindow } from 'electron';
 import path from 'path';
 
+import portfinder from 'portfinder';
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
   app.quit();
@@ -29,7 +31,9 @@ const createWindow = () => {
   }
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  if (!app.isPackaged) {
+    mainWindow.webContents.openDevTools();
+  } 
 };
 
 // This method will be called when Electron has finished
@@ -54,7 +58,36 @@ app.on('activate', () => {
   }
 });
 
+global.python_port  = -1;
+
 app.whenReady().then(() => {
+  portfinder.getPort((err, port) => {
+    if (err) {
+      // raise electron error
+      throw err;
+    }
+    console.log(`http://localhost:${port}`);
+    global.python_port = port;
+    const venvPath = path.join(__dirname, "../../src-py/"); 
+    let python_EXEC_CMD = app.isPackaged ? path.join(venvPath, 'Scripts', 'python.exe') : "python " + path.join(__dirname, "../../src-py/main.py");
+    python_EXEC_CMD += ` --port ${port}`;
+    console.log(python_EXEC_CMD); 
+    const pythonProcess = require('child_process').spawn(python_EXEC_CMD, {
+      shell: true,
+    });
+    pythonProcess.stdout.on('data', (data) => {
+      console.log(`stdout: ${data}`);
+    });
+    pythonProcess.stderr.on('data', (data) => {
+      console.error(`stderr: ${data}`);
+    });
+    pythonProcess.on('error', (error) => {
+      console.error(`Failed to start Python process: ${error}`);
+    });
+    pythonProcess.on('close', (code) => {
+      console.log(`Python process exited with code ${code}`);
+    });
+  });
   installExtension(REDUX_DEVTOOLS)
       .then((name) => console.log(`Added Extension:  ${name}`))
       .catch((err) => console.log('An error occurred: ', err));
@@ -67,3 +100,4 @@ app.whenReady().then(() => {
 // code. You can also put them in separate files and import them here.
 import './utils/record';
 import './utils/simpleTTS';
+import './utils/pass-port';

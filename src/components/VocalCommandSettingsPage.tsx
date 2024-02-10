@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { addVoiceCommand } from '../features/voiceCommands/voiceCommandsSlice.ts';
+import { addVoiceCommand, setInitState } from '../features/voiceCommands/voiceCommandsSlice.ts';
 import { Command, CommandTypes, defaultCommand } from '../types/CommandType.ts';
 import { RootState } from '../store/store';
+import { portNumber, initPortNumber } from '../utils/pass-port-render.js';
 import VoiceCommandRow  from "./VoiceCommandRow.tsx";
 
 
@@ -13,8 +14,16 @@ const VocalCommandSettingsPage = () => {
   const addCommandWhenEmpty = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault();
     dispatch(addVoiceCommand(defaultCommand));
-  }
-  
+  };
+
+  useEffect(() => {
+    initPortNumber().then(() => {
+      fetch('http://localhost:'+portNumber+'/getState', {
+        method: 'GET',
+      }).then(response => response.json()).then(data => {
+        dispatch(setInitState(data));
+      })});    
+  }, [dispatch]);
 
   return (
     <div>

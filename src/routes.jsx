@@ -1,8 +1,8 @@
 import { Info, Keyboard, Settings } from '@mui/icons-material';
 import * as React from 'react';
 import VocalCommandSettingsPage from './components/VocalCommandSettingsPage';
+import PageOtherSettings from './components/OtherSettingsPage';
 
-const PageOtherSettings = () => <p>Page 2</p>;
 const PageAbout = () => <p>Page 3</p>;
 
 export const routes = [

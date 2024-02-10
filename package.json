@@ -12,8 +12,8 @@
     "lint": "eslint --ext .ts,.tsx ."
   },
   "keywords": [],
-  "author": "s-k-y",
-  "license": "MIT",
+  "author": "Sky Li",
+  "license": "GPL-3.0-only",
   "devDependencies": {
     "@electron-forge/cli": "^7.2.0",
     "@electron-forge/maker-deb": "^7.2.0",
@@ -38,6 +38,8 @@
   "dependencies": {
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
+    "@grpc/grpc-js": "^1.10.0",
+    "@grpc/proto-loader": "^0.7.10",
     "@material-tailwind/react": "^2.1.8",
     "@mui/icons-material": "^5.15.8",
     "@mui/material": "^5.15.7",
@@ -45,7 +47,7 @@
     "electron-log": "^5.1.1",
     "electron-squirrel-startup": "^1.0.0",
     "fluent-ffmpeg": "^2.1.2",
-    "node-record-lpcm16": "^1.0.1",
+    "portfinder": "^1.0.32",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.0",
     "uuid": "^9.0.1"

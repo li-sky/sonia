@@ -90,3 +90,12 @@ typings/
 
 # Electron-Forge
 out/
+
+# python venv
+src-py/Include
+src-py/Lib
+src-py/Scripts
+src-py/pyvenv.cfg
+
+# vscode
+.vscode/

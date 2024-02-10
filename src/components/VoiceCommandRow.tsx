@@ -22,7 +22,7 @@ import "./VoiceCommandRow.css";
 import { Command } from "../types/CommandType";
 import { RootState } from "../store/store";
 import { useSelector, useDispatch } from "react-redux";
-import { addVoiceCommand, deleteVoiceCommand, updateVoiceCommandText, updateVoiceCommandTextAudioSelector, addVoiceCommandSound} from "../features/voiceCommands/voiceCommandsSlice.ts";
+import { addVoiceCommand, deleteVoiceCommand, updateVoiceCommandText, updateVoiceCommandTextAudioSelector, addVoiceCommandSound, deleteVoiceCommandSound} from "../features/voiceCommands/voiceCommandsSlice.ts";
 import { CommandTypes } from "../types/CommandType.ts";
 import { ipcRenderer } from 'electron';
 import { current } from "@reduxjs/toolkit";
@@ -162,7 +162,7 @@ const VoiceCommandRow: React.FC<Command> = ({ id, ...otherProps }) => {
 										>
 											<Mic />
 										</Button>
-										<Button color="cyan" ripple={true} id={"DeleteButtonSound" + id} placeholder={undefined} onClick={() => {dispatch(deleteVoiceCommand({id: currentlySelectedVoiceLine}))}}>
+										<Button color="cyan" ripple={true} id={"DeleteButtonSound" + id} placeholder={undefined} onClick={() => {dispatch(deleteVoiceCommandSound({id:id ,soundid: currentlySelectedVoiceLine}))}}>
 											<Delete />
 										</Button>
 									</ButtonGroup>

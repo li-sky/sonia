@@ -2,6 +2,7 @@
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 import { contextBridge, ipcRenderer } from 'electron';
 
+
 contextBridge.exposeInMainWorld('electron', {
   sendAudioData: (id: string, arrayBuffer: ArrayBuffer) => {
     const array = Array.from(new Uint8Array(arrayBuffer));
@@ -12,5 +13,8 @@ contextBridge.exposeInMainWorld('electron', {
   },
   speak: (text: string) => {
     ipcRenderer.send('speak', { text: text });
+  },
+  fetchPort: async () => {
+    return await ipcRenderer.invoke('fetch-port');
   }
 });

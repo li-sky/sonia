@@ -5,6 +5,7 @@ import { Button, Card, List, Navbar, Typography } from '@material-tailwind/react
 import { Provider } from 'react-redux';
 import store from './store/store';
 import "@mui/icons-material";
+import { initPortNumber } from './utils/pass-port-render';
 
 
 import { routes } from "./routes";

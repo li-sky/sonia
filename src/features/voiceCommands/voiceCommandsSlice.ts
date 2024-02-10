@@ -31,7 +31,7 @@ const voiceCommandsSlice = createSlice({
       state.cmds[action.payload.id].VoiceCommandList = [...state.cmds[action.payload.id].VoiceCommandList, {id: state.cmds[action.payload.id].VoiceCommandList.length, uuid: action.payload.uuid}];
     },
     deleteVoiceCommandSound: (state, action) => {
-      state.cmds[action.payload.id].VoiceCommandList = state.cmds[action.payload.id].VoiceCommandList.filter(sound => sound.id !== action.payload.sound.id);
+      state.cmds[action.payload.id].VoiceCommandList = state.cmds[action.payload.id].VoiceCommandList.filter(sound => sound.id !== action.payload.soundid);
       // make sure ids are continuous
       for (let i = 0; i < state.cmds[action.payload.id].VoiceCommandList.length; i++) {
         state.cmds[action.payload.id].VoiceCommandList[i].id = i;
@@ -45,6 +45,9 @@ const voiceCommandsSlice = createSlice({
     },
     updateVoiceCommandTextAudioSelector: (state, action) => {
       state.cmds[action.payload.id].commandType = action.payload.commandType;
+    },
+    setInitState(state, action) {
+      return {...state, ...JSON.parse(JSON.stringify(action.payload))};
     }
   }
 });
@@ -56,7 +59,8 @@ export const {
   deleteVoiceCommandSound,
   updateVoiceCommandText,
   updateVoiceCommandAction,
-  updateVoiceCommandTextAudioSelector
+  updateVoiceCommandTextAudioSelector,
+  setInitState
 } = voiceCommandsSlice.actions;
 
 export default voiceCommandsSlice.reducer;

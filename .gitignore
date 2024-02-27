@@ -99,3 +99,6 @@ src-py/pyvenv.cfg
 
 # vscode
 .vscode/
+
+# tailwind-css compile output
+src/index.css

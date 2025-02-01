@@ -24,7 +24,7 @@ state = {
     "otherSettings": {
         "language" : "zh-cn",
         "theme" : "light",
-        "voiceCommandBackends" : ["A", "B"],
+        "voiceCommandBackends" : [],
         "currentVoiceCommandBackend" : "",
         "voiceCommandBackendSettings" : {}
     }

@@ -12,12 +12,14 @@ import time
 import os
 import json
 
+
 # ================== 配置参数 ==================
 SAMPLE_RATE = 16000          # 模型要求的采样率
 CHUNK_MS = 5                 # 音频块时长（毫秒）
 WINDOW_SEC = 1.0             # 时间窗口长度（秒）
 PLOT_REFRESH_MS = 50         # 直方图刷新间隔(ms)，适当调大刷新间隔
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+DEVICE = None                # 使用的设备，根据是否使用 DML 加速自动设置
+USE_DML = True               # 是否使用 DML 加速，需要安装 torch_directml 库
 
 
 # ================== 异步音频流处理类 ==================
@@ -67,7 +69,10 @@ class RealtimeKWS:
                 # 模型推理（耗时操作移到后台线程中）
                 try:
                     features = self.model(audio_tensor.to(DEVICE))
-                    self.scores = self.model.lda.predict(features)
+                    if self.model.lda is not None:
+                        self.scores = self.model.lda.predict(features)
+                    else:
+                        print("LDA model is not initialized.")
                 except Exception as e:
                     print("Model inference error:", e)
             # 适当延时，防止线程占用过高CPU资源
@@ -188,21 +193,50 @@ class StreamingLDA:
         return scores
 
 class TAPSLDA(nn.Module):
-    def __init__(self, backbone_name='wav2vec2', tap_order=5):
+    def __init__(self, backbone_name='wav2vec2-large', tap_order=5):
         super().__init__()
-        # 初始化主干网络（这里使用 wav2vec2）
-        if backbone_name == 'wav2vec2':
+        if backbone_name == 'wav2vec2-large':
             bundle = torchaudio.pipelines.WAV2VEC2_LARGE
             self.backbone = bundle.get_model().to(DEVICE)
             for param in self.backbone.parameters():
                 param.requires_grad = False
+        elif backbone_name == 'mandarin-wav2vec2':
+            from transformers import Wav2Vec2Model, Wav2Vec2Processor
+
+            model = Wav2Vec2Model.from_pretrained("kehanlu/mandarin-wav2vec2")
+            processor = Wav2Vec2Processor.from_pretrained("kehanlu/mandarin-wav2vec2")
+
+            class backboneWrapper(nn.Module):
+                def __init__(self, model):
+                    super().__init__()
+                    self.processor = processor
+                    self.backbone_model = model.to(DEVICE)
+                def extract_features(self, x):
+                    if len(x.shape) == 3:  # [B,1,T] -> [B,T]
+                        x = x.squeeze(1)
+                    elif len(x.shape) == 4:  # [B,1,1,T] -> [B,T] 
+                        x = x.squeeze(1).squeeze(1)
+                        
+                    # 将张量转换为numpy数组并进行处理
+                    inputs = self.processor(x.cpu().numpy(), 
+                                        return_tensors="pt", 
+                                        sampling_rate=16000)
+                                        
+                    # 正确传递input_values
+                    with torch.no_grad():
+                        features = self.backbone_model(
+                            input_values=inputs.input_values.to(DEVICE)
+                        ).last_hidden_state
+                        
+                    return features, None
+            self.backbone = backboneWrapper(model).to(DEVICE)
         self.tap = TemporalAwarePooling(order=tap_order)
         self.lda = None
 
     def forward(self, x):
         with torch.no_grad():
             features, _ = self.backbone.extract_features(x.to(DEVICE))
-            features = features[-1]
+            # features已经是正确的形状，不需要取[-1]
         pooled = self.tap(features)
         return pooled
 
@@ -214,9 +248,16 @@ class TAPSLDA(nn.Module):
 
 
 if __name__ == "__main__":
+    # 参数设置
+    if USE_DML:
+        print("Using DML accelerator.")
+        import torch_directml
+        DEVICE = torch_directml.device()
+    else:
+        DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     # ================== 模型训练 ==================
     # 初始化模型
-    model = TAPSLDA(tap_order=5)
+    model = TAPSLDA(tap_order=5, backbone_name='mandarin-wav2vec2')
     model.to(DEVICE)
     
     # 加载训练数据描述文件

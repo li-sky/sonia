@@ -1,15 +1,28 @@
-import * as React from 'react';
+import React from 'react';
+import { ListItem } from '@mui/material';
+import { NavLink } from 'react-router-dom';
 
-import { NavLink, useMatch } from 'react-router-dom';
-import { Button } from '@material-tailwind/react';
+interface CustomNavLinkProps {
+  to: string;
+  children: React.ReactNode;
+  onClick?: () => void;
+}
 
-export const CustomNavLink = ({ to, children }: { to: string; children: React.ReactNode }) => {
-    const match = useMatch(to);
-    return (
-        <NavLink to={to} className={({ isActive }) => isActive ? 'active' : ''}>
-            <Button className={`flex items-center w-full space-x-2 shadow-lg ${match ? 'bg-cyan-700 text-white' : 'bg-white text-black'}`} placeholder="">
-                {children}
-            </Button>
-        </NavLink>
-    );
+export const CustomNavLink: React.FC<CustomNavLinkProps> = ({ to, children, onClick }) => {
+  return (
+    <ListItem
+      component={NavLink}
+      to={to}
+      onClick={onClick}
+      className={`
+        flex items-center justify-between rounded-lg
+        hover:bg-gray-200 transition-all duration-200
+        min-h-[56px] text-black no-underline
+        hover:text-black no-wrap
+      `}
+      style={{ color: 'inherit', cursor: 'pointer' }} // Added inline styles
+    >
+      {children}
+    </ListItem>
+  );
 };

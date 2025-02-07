@@ -32,7 +32,7 @@ state = {
 
 settingspath = os.path.expandvars('%APPDATA%/sonia/sonia/settings.json')
 
-@app.route('/updateState', methods=['POST'])
+@app.route('/v1/updateState', methods=['POST'])
 def updateState():
     global state
     state = request.json
@@ -46,19 +46,19 @@ def updateState():
             json.dump(state, f)
     return jsonify(state)
 
-@app.route('/getState', methods=['GET'])
+@app.route('/v1/getState', methods=['GET'])
 def initState():
     global state
     print('initState', state)
     return jsonify(state["voiceCommands"])
 
-@app.route('/getOtherSettingsState', methods=['GET'])
+@app.route('/v1/getOtherSettingsState', methods=['GET'])
 def getOtherSettingsState():
     global state
     return jsonify(state["otherSettings"])
 
 
-@app.route('/setRecognitionBackend', methods=['POST'])
+@app.route('/v1/setRecognitionBackend', methods=['POST'])
 def setRecognitionBackend():
     global state
     state["otherSettings"]['currentVoiceCommandBackend'] = request.json['currentVoiceCommandBackend']
@@ -72,12 +72,12 @@ def setRecognitionBackend():
             json.dump(state, f)
     return jsonify(state["otherSettings"]["currentVoiceCommandBackend"])
 
-@app.route('/getRecognitionBackend', methods=['GET'])
+@app.route('/v1/getRecognitionBackend', methods=['GET'])
 def getRecognitionBackend():
     global state
     return jsonify(state["otherSettings"]['voiceCommandBackends'])
 
-@app.route('/setRecognitionState', methods=['POST'])
+@app.route('/v1/setRecognitionState', methods=['POST'])
 def setRecognitionState():
     global state
     state["otherSettings"]['recognitionState'] = request.json['recognitionState']

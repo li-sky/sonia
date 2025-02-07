@@ -1,16 +1,22 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "commonjs",
+    "module": "NodeNext", // Use ES modules
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "noImplicitAny": true,
+    "noImplicitAny": false, // Consider enabling this for stricter type checking
     "sourceMap": true,
     "baseUrl": ".",
     "outDir": "dist",
-    "moduleResolution": "node",
-    "resolveJsonModule": true
+    "moduleResolution": "NodeNext", // Use modern Node.js module resolution
+    "resolveJsonModule": true,
+    "jsx": "react",
+    "lib": ["dom", "esnext"], // Add "dom" to include DOM types
+    "strict": false, // Consider enabling this for stricter type checking
+    "noEmit": true, // Prevents tsc from emitting files (bundler does this)
+    "isolatedModules": true // Ensure compatibility with bundlers
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["node_modules"]
 }

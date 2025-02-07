@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { Input } from "@material-tailwind/react";
+import { Input } from "@mui/material";
 import { RootState } from "../store/store";
-import { updateVoiceCommandAction } from "../features/voiceCommands/voiceCommandsSlice.ts";
+import { updateVoiceCommandAction } from "../features/voiceCommands/voiceCommandsSlice";
 import { useDispatch, useSelector } from "react-redux";
 
 const KeybindSetter = ({ idNum }: { idNum: number }) => {
@@ -36,7 +36,6 @@ const KeybindSetter = ({ idNum }: { idNum: number }) => {
                 onClick={onClick}
                 className="w-40"
                 readOnly
-                crossOrigin="" // Add the missing "crossOrigin" property here
             />
         </div>
     );

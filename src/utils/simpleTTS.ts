@@ -1,4 +1,4 @@
-const ipcMain = require('electron').ipcMain;
+import { ipcMain } from 'electron';
 
 ipcMain.on('speak', (event, data) => {
 

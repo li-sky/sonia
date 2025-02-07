@@ -5,8 +5,9 @@ import {
     Switch,
     Input,
     Select,
-    Option
-} from "@material-tailwind/react";
+	MenuItem,
+	SelectChangeEvent
+} from "@mui/material";
 import {
     Add,
     PlayCircleOutline,
@@ -16,14 +17,13 @@ import {
 import { CSSTransition } from "react-transition-group";
 import { v1 as uuidv1 } from "uuid";
 
-import KeybindSetter from './KeybindSetter.tsx';
-import "./VoiceCommandRow.css";
+import KeybindSetter from './KeybindSetter';
 
 import { Command } from "../types/CommandType";
 import { RootState } from "../store/store";
 import { useSelector, useDispatch } from "react-redux";
-import { addVoiceCommand, deleteVoiceCommand, updateVoiceCommandText, updateVoiceCommandTextAudioSelector, addVoiceCommandSound, deleteVoiceCommandSound} from "../features/voiceCommands/voiceCommandsSlice.ts";
-import { CommandTypes } from "../types/CommandType.ts";
+import { addVoiceCommand, deleteVoiceCommand, updateVoiceCommandText, updateVoiceCommandTextAudioSelector, addVoiceCommandSound, deleteVoiceCommandSound} from "../features/voiceCommands/voiceCommandsSlice";
+import { CommandTypes } from "../types/CommandType";
 import { ipcRenderer } from 'electron';
 import { current } from "@reduxjs/toolkit";
 
@@ -97,18 +97,16 @@ const VoiceCommandRow: React.FC<Command> = ({ id, ...otherProps }) => {
 
 
 	return (
-		<div className="flex-col" id={id}>
+		<div className="flex-col" id={id.toString()}>
 			<div className="h-5"> </div>
 			<div className="flex justify-center items-center space-x-4">
 				<div className="flex items-center ml-2 mr-2 whitespace-nowrap">
 					语音
 				</div>
 				<Switch
-				color="cyan"
-				ripple={true}
+				color="primary"
 				onChange={handleSwitchChange}
 				id={"VoiceLine" + id}
-				crossOrigin={undefined}
 				checked={otherProps.commandType === CommandTypes.TextCommand}
 				/>
 				<div className="flex items-center ml-2 mr-2 whitespace-nowrap">
@@ -123,7 +121,7 @@ const VoiceCommandRow: React.FC<Command> = ({ id, ...otherProps }) => {
 							unmountOnExit
 						>
 							<div className="absolute w-40 items-center">
-								<Input label="语音词汇" id={"Input" + id} crossOrigin={undefined} value={otherProps.TriggerWord} onChange={(event: React.ChangeEvent<HTMLInputElement>) => {dispatch(updateVoiceCommandText({id: id, text: event.target.value}))}}></Input>
+								<Input placeholder="语音词汇" id={"Input" + id} value={otherProps.TriggerWord} onChange={(event: React.ChangeEvent<HTMLInputElement>) => {dispatch(updateVoiceCommandText({id: id, text: event.target.value}))}}></Input>
 							</div>
 						</CSSTransition>
 						<CSSTransition
@@ -139,30 +137,28 @@ const VoiceCommandRow: React.FC<Command> = ({ id, ...otherProps }) => {
 										className="!min-w-[100px]" 
 										placeholder={undefined} 
 										value={currentlySelectedVoiceLine.toString()} 
-										onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setCurrentlySelectedVoiceLine(parseInt(event))}
+										onChange={(event: SelectChangeEvent<string>) => setCurrentlySelectedVoiceLine(parseInt(event.target.value))}
 									>
 										{otherProps.VoiceCommandList.length > 0 ? (
 											otherProps.VoiceCommandList.map(({id, uuid}) => (
-												<Option key={uuid} id={id} value={id.toString()}>{id.toString()}</Option>
+												<MenuItem key={uuid} id={id.toString()} value={id.toString()}>{id.toString()}</MenuItem>
 											))
 										) : (
-											<Option value="-1" disabled>新增音频...</Option>
+											<MenuItem value="-1" disabled>新增音频...</MenuItem>
 										)}
 									</Select>
 								</div>
 								<div className="">
-									<ButtonGroup className="flex lm-20" color="cyan" placeholder={undefined}>
+									<ButtonGroup className="flex lm-20" color="primary">
 										<Button
-											color="cyan"
-											ripple={true}
+											color="primary"
 											id={"MicButton" + id}
 											fullWidth
 											onClick={recordAudioAndSave}
-											placeholder={undefined}
 										>
 											<Mic />
 										</Button>
-										<Button color="cyan" ripple={true} id={"DeleteButtonSound" + id} placeholder={undefined} onClick={() => {dispatch(deleteVoiceCommandSound({id:id ,soundid: currentlySelectedVoiceLine}))}}>
+										<Button color="primary" id={"DeleteButtonSound" + id} onClick={() => {dispatch(deleteVoiceCommandSound({id:id ,soundid: currentlySelectedVoiceLine}))}}>
 											<Delete />
 										</Button>
 									</ButtonGroup>
@@ -170,14 +166,14 @@ const VoiceCommandRow: React.FC<Command> = ({ id, ...otherProps }) => {
 							</div>
 						</CSSTransition>
 					</div>
-					<ButtonGroup className="flex lm-20" color="cyan"  placeholder={undefined}>
-						<Button color="cyan" ripple={true} id={"PlayButton" + id}  placeholder={undefined} onClick={playAudio}>
+					<ButtonGroup className="flex lm-20" color="primary" >
+						<Button color="primary" id={"PlayButton" + id}  onClick={playAudio}>
 							<PlayCircleOutline />
 						</Button>
-						<Button color="cyan" ripple={true} id={"AddButton" + id}  placeholder={undefined} onClick={() => {dispatch(addVoiceCommand({id: id}))}}>
+						<Button color="primary" id={"AddButton" + id}  onClick={() => {dispatch(addVoiceCommand({id: id}))}}>
 							<Add />
 						</Button>
-						<Button color="cyan" ripple={true} id={"DeleteButton" + id}  placeholder={undefined} onClick={() => {dispatch(deleteVoiceCommand(id))}}>
+						<Button color="primary" id={"DeleteButton" + id}  onClick={() => {dispatch(deleteVoiceCommand(id))}}>
 							<Delete />
 						</Button>
 					</ButtonGroup>

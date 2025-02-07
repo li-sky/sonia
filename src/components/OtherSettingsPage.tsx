@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { setInitState, setCurrentVoiceCommandBackend, setRecognitionStarted } from '../features/otherSettings/otherSettingsSlice';
 import { RootState } from '../store/store';
 import { portNumber, initPortNumber } from '../utils/pass-port-render';
-import { Select, Switch, Typography, Option } from '@material-tailwind/react';
+import { Select, Switch, Typography, MenuItem, SelectChangeEvent } from '@mui/material'
 
 const OtherSettingsPage = () => {
   const dispatch = useDispatch();
@@ -23,7 +23,8 @@ const OtherSettingsPage = () => {
   
   const [backendOption, setBackendOPtion] = useState<string>("");
 
-  const changeBackend = (backend: string) => {
+  const changeBackend = (event: SelectChangeEvent<string>) => {
+    const backend = event.target.value as string;
     console.log(backend);
     setBackendOPtion(backend);
     fetch('http://localhost:'+portNumber+'/setRecognitionBackend', {
@@ -55,15 +56,14 @@ const OtherSettingsPage = () => {
       <div className="flex flex-col space-y-4">
         <div className="flex justify-center items-center h-20 bg-cyan-500 text-white text-2xl cursor-pointer" >
             <label>开关识别</label>
-            <Switch color="cyan" size="lg" checked={started} onChange={changeSwitch}/>
+            <Switch color="primary" size="medium" checked={started} onChange={changeSwitch}/>
         </div>
         <div className="flex justify-center items-center h-20 bg-cyan-500 text-white text-2xl cursor-pointer">
-            <label>选择识别后端</label>
-            <Select color="cyan" size="lg" onChange={changeBackend} label="Backend">
+            <Select color="primary" size="medium" onChange={changeBackend} label="Backend" value={backendOption}>
                 {backends.length === 0 ?
-                (<Option value="无识别后端" key="-1" disabled>无识别后端</Option>)
+                (<MenuItem value="无识别后端" key="-1" disabled>无识别后端</MenuItem>)
                 : backends.map((backend, index) => (
-                    <Option value={backend}>{backend}</Option>
+                    <MenuItem value={backend} key={index}>{backend}</MenuItem>
                 ))}
             </Select>
         </div>

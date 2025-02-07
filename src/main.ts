@@ -1,4 +1,4 @@
-import installExtension, { REDUX_DEVTOOLS, REACT_DEVELOPER_TOOLS } from 'electron-devtools-assembler';
+// import installExtension, { REDUX_DEVTOOLS, REACT_DEVELOPER_TOOLS } from 'electron-devtools-assembler';
 
 import { app, BrowserWindow } from 'electron';
 import path from 'path';
@@ -66,8 +66,9 @@ app.whenReady().then(() => {
       // raise electron error
       throw err;
     }
-    console.log(`http://localhost:${port}`);
-    global.python_port = port;
+    // global.python_port = port;
+    global.endpoint_url = `http://localhost:${port}`;
+    console.log(`Python server endpoint: ${global.endpoint_url}`);
     const venvPath = path.join(__dirname, "../../src-py/"); 
     let python_EXEC_CMD = app.isPackaged ? path.join(venvPath, 'Scripts', 'python.exe') : "python " + path.join(__dirname, "../../src-py/main.py");
     python_EXEC_CMD += ` --port ${port}`;
@@ -88,12 +89,12 @@ app.whenReady().then(() => {
       console.log(`Python process exited with code ${code}`);
     });
   });
-  installExtension(REDUX_DEVTOOLS)
-      .then((name) => console.log(`Added Extension:  ${name}`))
-      .catch((err) => console.log('An error occurred: ', err));
-  installExtension(REACT_DEVELOPER_TOOLS)
-      .then((name) => console.log(`Added Extension:  ${name}`))
-      .catch((err) => console.log('An error occurred: ', err));
+  // installExtension(REDUX_DEVTOOLS)
+  //     .then((name) => console.log(`Added Extension:  ${name}`))
+  //     .catch((err) => console.log('An error occurred: ', err));
+  // installExtension(REACT_DEVELOPER_TOOLS)
+  //     .then((name) => console.log(`Added Extension:  ${name}`))
+  //     .catch((err) => console.log('An error occurred: ', err));
 });
 
 // In this file you can include the rest of your app's specific main process

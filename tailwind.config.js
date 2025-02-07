@@ -1,12 +1,7 @@
 /** @type {import('tailwindcss').Config} */
-
-const withMT = require("@material-tailwind/react/utils/withMT");
-
-module.exports = withMT({
-  content: ["./src/**/*.{html,js,jsx,tsx,ts}"],
-  theme: {
-    extend: {},
-  },
+module.exports = {
+  content: ["./src/**/*.{js,jsx,ts,tsx}", "./src/*.{js,jsx,ts,tsx}"],
+  presets: [require('tailwindcss/defaultConfig')], // 添加默认预设
+  theme: {},
   plugins: [],
-});
-
+};

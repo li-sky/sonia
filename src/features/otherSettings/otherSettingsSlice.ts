@@ -3,7 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const otherSettingsSlice = createSlice({
   name: "otherSettings",
   initialState: {
-    language: "en",
+    language: "zh-cn",
     theme: "light",
     isRecognitionStarted: false,
     voiceCommandBackends: [],

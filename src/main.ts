@@ -69,7 +69,7 @@ app.whenReady().then(() => {
     // global.python_port = port;
     global.endpoint_url = `http://localhost:${port}`;
     console.log(`Python server endpoint: ${global.endpoint_url}`);
-    const venvPath = path.join(__dirname, "../../src-py/"); 
+    const venvPath = path.join(__dirname, "../../pyvenv/"); 
     let python_EXEC_CMD = app.isPackaged ? path.join(venvPath, 'Scripts', 'python.exe') : "python " + path.join(__dirname, "../../src-py/main.py");
     python_EXEC_CMD += ` --port ${port}`;
     console.log(python_EXEC_CMD); 

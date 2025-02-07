@@ -6,6 +6,8 @@ import sounddevice as sd
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from transformers import Wav2Vec2Model, Wav2Vec2Processor
 from collections import deque
 from threading import Lock, Thread
 import time
@@ -19,7 +21,8 @@ CHUNK_MS = 5                 # 音频块时长（毫秒）
 WINDOW_SEC = 1.0             # 时间窗口长度（秒）
 PLOT_REFRESH_MS = 50         # 直方图刷新间隔(ms)，适当调大刷新间隔
 DEVICE = None                # 使用的设备，根据是否使用 DML 加速自动设置
-USE_DML = True               # 是否使用 DML 加速，需要安装 torch_directml 库
+USE_DML = False              # 是否使用 DML 加速，需要安装 torch_directml 库
+DEBUG = True                 # 是否使用调试模式
 
 
 # ================== 异步音频流处理类 ==================
@@ -37,7 +40,9 @@ class RealtimeKWS:
         self.processing_thread.daemon = True  # 主线程退出时，自动结束
 
         # 初始化绘图
-        plt.rcParams["font.family"] = "Microsoft YaHei"
+        self.fig = plt.figure()
+        self.canvas = FigureCanvasTkAgg(self.fig)
+        plt.rcParams["font.family"] = "Noto Sans CJK"
         self.fig, self.ax = plt.subplots()
         self.bars = None
 
@@ -108,10 +113,11 @@ class RealtimeKWS:
             callback=self.audio_callback
         )
         # 使用FuncAnimation定时刷新图形
-        ani = FuncAnimation(self.fig, self.plot_update, interval=PLOT_REFRESH_MS)
+        ani = FuncAnimation(self.fig, self.plot_update, interval=PLOT_REFRESH_MS, cache_frame_data=False)
         with stream:
             print("==> 开始实时语音识别 (按Ctrl+C退出)...")
             try:
+                self.canvas.draw()
                 plt.show()
             except KeyboardInterrupt:
                 pass
@@ -196,40 +202,37 @@ class TAPSLDA(nn.Module):
     def __init__(self, backbone_name='wav2vec2-large', tap_order=5):
         super().__init__()
         if backbone_name == 'wav2vec2-large':
-            bundle = torchaudio.pipelines.WAV2VEC2_LARGE
-            self.backbone = bundle.get_model().to(DEVICE)
-            for param in self.backbone.parameters():
-                param.requires_grad = False
+            name = "facebook/wav2vec2-large-960h-lv60-self"
         elif backbone_name == 'mandarin-wav2vec2':
-            from transformers import Wav2Vec2Model, Wav2Vec2Processor
+            name = "kehanlu/mandarin-wav2vec2"
 
-            model = Wav2Vec2Model.from_pretrained("kehanlu/mandarin-wav2vec2")
-            processor = Wav2Vec2Processor.from_pretrained("kehanlu/mandarin-wav2vec2")
+        model = Wav2Vec2Model.from_pretrained(name)
+        processor = Wav2Vec2Processor.from_pretrained(name)
 
-            class backboneWrapper(nn.Module):
-                def __init__(self, model):
-                    super().__init__()
-                    self.processor = processor
-                    self.backbone_model = model.to(DEVICE)
-                def extract_features(self, x):
-                    if len(x.shape) == 3:  # [B,1,T] -> [B,T]
-                        x = x.squeeze(1)
-                    elif len(x.shape) == 4:  # [B,1,1,T] -> [B,T] 
-                        x = x.squeeze(1).squeeze(1)
-                        
-                    # 将张量转换为numpy数组并进行处理
-                    inputs = self.processor(x.cpu().numpy(), 
-                                        return_tensors="pt", 
-                                        sampling_rate=16000)
-                                        
-                    # 正确传递input_values
-                    with torch.no_grad():
-                        features = self.backbone_model(
-                            input_values=inputs.input_values.to(DEVICE)
-                        ).last_hidden_state
-                        
-                    return features, None
-            self.backbone = backboneWrapper(model).to(DEVICE)
+        class backboneWrapper(nn.Module):
+            def __init__(self, model):
+                super().__init__()
+                self.processor = processor
+                self.backbone_model = model.to(DEVICE)
+            def extract_features(self, x):
+                if len(x.shape) == 3:  # [B,1,T] -> [B,T]
+                    x = x.squeeze(1)
+                elif len(x.shape) == 4:  # [B,1,1,T] -> [B,T] 
+                    x = x.squeeze(1).squeeze(1)
+                    
+                # 将张量转换为numpy数组并进行处理
+                inputs = self.processor(x.cpu().numpy(), 
+                                    return_tensors="pt", 
+                                    sampling_rate=16000)
+                                    
+                # 正确传递input_values
+                with torch.no_grad():
+                    features = self.backbone_model(
+                        input_values=inputs.input_values.to(DEVICE)
+                    ).last_hidden_state
+                    
+                return features, None
+        self.backbone = backboneWrapper(model).to(DEVICE)
         self.tap = TemporalAwarePooling(order=tap_order)
         self.lda = None
 
@@ -257,11 +260,12 @@ if __name__ == "__main__":
         DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     # ================== 模型训练 ==================
     # 初始化模型
-    model = TAPSLDA(tap_order=5, backbone_name='mandarin-wav2vec2')
+    model = TAPSLDA(tap_order=5, backbone_name='wav2vec2-large')
     model.to(DEVICE)
     
     # 加载训练数据描述文件
     directory_train = "./src-py/data/train/"
+    directory_test = "./src-py/data/test/"
     with open(os.path.join(directory_train, "description.json"), encoding='utf-8') as f:
         data = json.load(f)
 
@@ -283,6 +287,30 @@ if __name__ == "__main__":
     features = model(audio.to(DEVICE))
     prediction = model.lda.predict(features)
     print("Warmup done.")
+
+    if DEBUG:
+        # ================== 调试模式 ==================
+        # 模型推理
+
+        with open(os.path.join(directory_test, "description.json"), encoding='utf-8') as f:
+            data = json.load(f)
+        for entry in data:
+            audio_path = os.path.join(directory_test, entry['filename'])
+            audio, samplerate = torchaudio.load(audio_path)
+            # 重采样到 16000Hz
+            resampler = torchaudio.transforms.Resample(samplerate, SAMPLE_RATE)
+            audio = resampler(audio)
+            # 只使用左声道
+            audio = audio[0].unsqueeze(0)
+            # 开始推理计时
+            start_time = time.time()
+            features = model(audio.to(DEVICE))
+            prediction = model.lda.predict(features)
+            # 结束推理计时
+            end_time = time.time()
+            print("Inference time:", end_time - start_time)
+            print("Prediction:", prediction)
+        exit(0)
 
     # ================== 启动异步实时处理 ==================
     kws = RealtimeKWS(model)

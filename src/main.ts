@@ -59,7 +59,7 @@ app.on('activate', () => {
   }
 });
 
-global.python_port  = -1;
+global.python_port = -1;
 
 app.whenReady().then(() => {
   portfinder.getPort((err, port) => {

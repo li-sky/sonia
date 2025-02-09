@@ -11,6 +11,7 @@ ipcMain.on('update-state', (event, state) => {
 );
 
 ipcMain.handle('fetch-state', (event, data) => {
+    console.log('state fetched');
     return store.get('state');
 });
 

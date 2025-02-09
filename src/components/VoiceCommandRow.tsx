@@ -25,13 +25,12 @@ import { addVoiceCommand, deleteVoiceCommand, addVoiceCommandSound, deleteVoiceC
 import { ipcRenderer } from 'electron';
 import { current } from "@reduxjs/toolkit";
 
-// 删除了 handleSwitchChange 及文本命令相关的 updateVoiceCommandText、updateVoiceCommandTextAudioSelector
 
 const VoiceCommandRow: React.FC<Command> = ({ id, ...otherProps }) => {
 	const dispatch = useDispatch();
 	const thisCommandType: CommandTypes = CommandTypes.VoiceCommand;
 		
-	const [currentlySelectedVoiceLine, setCurrentlySelectedVoiceLine] = useState(0);
+	const [currentlySelectedVoiceLine, setCurrentlySelectedVoiceLine] = useState('');
 
 	const recordAudioAndSave = (event: React.MouseEvent<HTMLButtonElement>) => {
 		navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
@@ -47,7 +46,7 @@ const VoiceCommandRow: React.FC<Command> = ({ id, ...otherProps }) => {
 					const audio_id = uuidv1();
 					window.electron.sendAudioData(audio_id.toString(), arrayBuffer);
 					dispatch(addVoiceCommandSound({ id: id, uuid: audio_id }));
-					setCurrentlySelectedVoiceLine(otherProps.VoiceCommandList.length);
+					setCurrentlySelectedVoiceLine(otherProps.VoiceCommandList.length.toString());
 				};
 			});
 
@@ -65,8 +64,8 @@ const VoiceCommandRow: React.FC<Command> = ({ id, ...otherProps }) => {
 	};
 
 	const playAudio = async (event: React.MouseEvent<HTMLButtonElement>) => {
-		if (currentlySelectedVoiceLine !== -1) {
-			const ret = await window.electron.fetchAudioData(otherProps.VoiceCommandList[currentlySelectedVoiceLine].uuid);
+		if (currentlySelectedVoiceLine !== '') {
+			const ret = await window.electron.fetchAudioData(otherProps.VoiceCommandList[parseInt(currentlySelectedVoiceLine)].uuid);
 			if (ret !== null) {
 				const blob = new Blob([ret], { type: 'audio/mp3' });
 				const url = URL.createObjectURL(blob);
@@ -91,16 +90,18 @@ const VoiceCommandRow: React.FC<Command> = ({ id, ...otherProps }) => {
 								<Select 
 									label="选择音频" 
 									className="!min-w-[100px]" 
-									value={currentlySelectedVoiceLine.toString()} 
-									onChange={(event: SelectChangeEvent<string>) => setCurrentlySelectedVoiceLine(parseInt(event.target.value))}
+									value={currentlySelectedVoiceLine}
+									displayEmpty
+									onChange={(event: SelectChangeEvent<string>) => setCurrentlySelectedVoiceLine(event.target.value)}
 								>
-									{otherProps.VoiceCommandList.length > 0 ? (
-										otherProps.VoiceCommandList.map(({ id, uuid }) => (
-											<MenuItem key={uuid} id={id.toString()} value={id.toString()}>{id.toString()}</MenuItem>
-										))
-									) : (
-										<MenuItem value="-1" disabled>新增音频...</MenuItem>
-									)}
+									<MenuItem value="">
+										<em>选择音频...</em>
+									</MenuItem>
+									{otherProps.VoiceCommandList.map(({ id, uuid }, index) => (
+										<MenuItem key={uuid} value={index.toString()}>
+											{`音频 ${index + 1}`}
+										</MenuItem>
+									))}
 								</Select>
 							</div>
 							<div className="">
@@ -114,7 +115,7 @@ const VoiceCommandRow: React.FC<Command> = ({ id, ...otherProps }) => {
 								</ButtonGroup>
 							</div>
 						</div>
-						<div className="ml-2"> {/* 增加间距区分第一组与第二组 */}
+						<div className="ml-2">
 							<ButtonGroup className="flex lm-20" color="primary">
 								<Button color="primary" id={"PlayButton" + id} onClick={playAudio}>
 									<PlayCircleOutline />

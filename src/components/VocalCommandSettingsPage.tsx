@@ -19,7 +19,7 @@ const VocalCommandSettingsPage = () => {
     initPortNumber();
     console.log(portNumber);
     window.electron.fetchState().then((state) => {
-      dispatch(setInitState(state));
+      dispatch(setInitState(state.voiceCommands === undefined ? { cmds: [] } : state.voiceCommands));
     });
   }, [dispatch]);
 

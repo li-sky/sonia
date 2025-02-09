@@ -10,10 +10,9 @@ const OtherSettingsPage = () => {
 
   useEffect(() => {
     initPortNumber().then(() => {
-      fetch('http://localhost:'+portNumber+'/getOtherSettingsState', {
-        method: 'GET',
-      }).then(response => response.json()).then(data => {
-        dispatch(setInitState(data));
+
+      window.electron.fetchState().then((state) => {
+        dispatch(setInitState(state.otherSettings === undefined ? { voiceCommandBackends: [], currentVoiceCommandBackend: "", isRecognitionStarted: false } : state.otherSettings));
       })});    
   }, [dispatch]);
 

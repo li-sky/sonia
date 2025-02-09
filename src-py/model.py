@@ -21,7 +21,7 @@ CHUNK_MS = 5                 # 音频块时长（毫秒）
 WINDOW_SEC = 1.0             # 时间窗口长度（秒）
 PLOT_REFRESH_MS = 50         # 直方图刷新间隔(ms)，适当调大刷新间隔
 DEVICE = None                # 使用的设备，根据是否使用 DML 加速自动设置
-USE_DML = False              # 是否使用 DML 加速，需要安装 torch_directml 库
+USE_DML = True              # 是否使用 DML 加速，需要安装 torch_directml 库
 DEBUG = True                # 是否使用调试模式
 USE_SONIA_FILE = True        # 是否使用 Sonia 保存的数据集文件
 
@@ -267,8 +267,9 @@ if __name__ == "__main__":
     # 加载训练数据描述文件
     if USE_SONIA_FILE:
         directory_description_file = "~/.config/sonia/config.json" if os.name == 'posix' else "%APPDATA%/sonia/config.json"
-        directory_description_file = os.path.expanduser(directory_description_file)
+        directory_description_file = os.path.expandvars(directory_description_file)
         directory_train = "~/.config/sonia/sonia/audiorecordings/" if os.name == 'posix' else "%APPDATA%/sonia/sonia/audiorecordings/"
+        directory_train = os.path.expandvars(directory_train)
         with open(directory_description_file, encoding='utf-8') as f:
             audiolist = json.load(f)
         audiolist = audiolist["state"]["voiceCommands"]["cmds"]

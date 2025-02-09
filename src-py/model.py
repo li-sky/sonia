@@ -22,7 +22,8 @@ WINDOW_SEC = 1.0             # 时间窗口长度（秒）
 PLOT_REFRESH_MS = 50         # 直方图刷新间隔(ms)，适当调大刷新间隔
 DEVICE = None                # 使用的设备，根据是否使用 DML 加速自动设置
 USE_DML = False              # 是否使用 DML 加速，需要安装 torch_directml 库
-DEBUG = True                 # 是否使用调试模式
+DEBUG = True                # 是否使用调试模式
+USE_SONIA_FILE = True        # 是否使用 Sonia 保存的数据集文件
 
 
 # ================== 异步音频流处理类 ==================
@@ -42,7 +43,7 @@ class RealtimeKWS:
         # 初始化绘图
         self.fig = plt.figure()
         self.canvas = FigureCanvasTkAgg(self.fig)
-        plt.rcParams["font.family"] = "Noto Sans CJK"
+        # plt.rcParams["font.family"] = ""
         self.fig, self.ax = plt.subplots()
         self.bars = None
 
@@ -264,14 +265,30 @@ if __name__ == "__main__":
     model.to(DEVICE)
     
     # 加载训练数据描述文件
-    directory_train = "./src-py/data/train/"
-    directory_test = "./src-py/data/test/"
-    with open(os.path.join(directory_train, "description.json"), encoding='utf-8') as f:
-        data = json.load(f)
+    if USE_SONIA_FILE:
+        directory_description_file = "~/.config/sonia/config.json" if os.name == 'posix' else "%APPDATA%/sonia/config.json"
+        directory_description_file = os.path.expanduser(directory_description_file)
+        directory_train = "~/.config/sonia/sonia/audiorecordings/" if os.name == 'posix' else "%APPDATA%/sonia/sonia/audiorecordings/"
+        with open(directory_description_file, encoding='utf-8') as f:
+            audiolist = json.load(f)
+        audiolist = audiolist["state"]["voiceCommands"]["cmds"]
+        data = []
+        for entry in audiolist:
+            for single_entry in entry["VoiceCommandList"]:
+                data.append({
+                    "filename": single_entry["uuid"]+".wav",
+                    "label": entry["label"]
+                })
+        directory_test = "./src-py/data/test/"
+    else:
+        directory_train = "./src-py/data/train/"
+        directory_test = "./src-py/data/test/"
+        with open(os.path.join(directory_train, "description.json"), encoding='utf-8') as f:
+            data = json.load(f)
 
     # 训练模型，更新 StreamingLDA
     for entry in data:
-        audio_path = os.path.join(directory_train, entry['filename'])
+        audio_path = os.path.expanduser(os.path.join(directory_train, entry['filename']))
         audio, samplerate = torchaudio.load(audio_path)
         # 重采样到 16000Hz
         resampler = torchaudio.transforms.Resample(samplerate, SAMPLE_RATE)
@@ -315,3 +332,4 @@ if __name__ == "__main__":
     # ================== 启动异步实时处理 ==================
     kws = RealtimeKWS(model)
     kws.start()
+

@@ -1,0 +1,11 @@
+# Take note: when GPU inference is needed,
+# please install the GPU version of torch and torchaudio.
+# checkout link: https://pytorch.org/get-started/locally/
+torch
+torchaudio
+transformers
+sounddevice
+numpy
+matplotlib
+# you also need package "soundfile" if your operating system
+# is Windows.

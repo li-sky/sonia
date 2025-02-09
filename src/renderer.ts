@@ -26,8 +26,8 @@
  * ```
  */
 
-import "./input.css"
+import "./input.css";
 
 console.log('👋 This message is being logged by "renderer.ts", included via Vite');
 
-import './app.jsx'
+import './app';

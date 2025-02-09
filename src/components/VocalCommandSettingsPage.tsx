@@ -1,11 +1,10 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { addVoiceCommand, setInitState } from '../features/voiceCommands/voiceCommandsSlice.ts';
-import { Command, CommandTypes, defaultCommand } from '../types/CommandType.ts';
+import { addVoiceCommand, setInitState } from '../features/voiceCommands/voiceCommandsSlice';
+import { Command, CommandTypes, defaultCommand } from '../types/CommandType';
 import { RootState } from '../store/store';
-import { portNumber, initPortNumber } from '../utils/pass-port-render.js';
-import VoiceCommandRow  from "./VoiceCommandRow.tsx";
-
+import { portNumber, initPortNumber } from '../utils/pass-port-render';
+import VoiceCommandRow  from "./VoiceCommandRow";
 
 const VocalCommandSettingsPage = () => {
   const commands = useSelector((state: RootState) => state.voiceCommands.cmds);
@@ -17,12 +16,11 @@ const VocalCommandSettingsPage = () => {
   };
 
   useEffect(() => {
-    initPortNumber().then(() => {
-      fetch('http://localhost:'+portNumber+'/getState', {
-        method: 'GET',
-      }).then(response => response.json()).then(data => {
-        dispatch(setInitState(data));
-      })});    
+    initPortNumber();
+    console.log(portNumber);
+    window.electron.fetchState().then((state) => {
+      dispatch(setInitState(state));
+    });
   }, [dispatch]);
 
   return (

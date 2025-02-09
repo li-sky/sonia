@@ -26,7 +26,7 @@ const KeybindSetter = ({ idNum }: { idNum: number }) => {
     };
 
     return (
-        <div className="w-40">
+        <div className="w-40 m-2">
             <Input
                 type="text"
                 value={state.cmds[idNum].action}

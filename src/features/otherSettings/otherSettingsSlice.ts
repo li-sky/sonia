@@ -30,6 +30,7 @@ const otherSettingsSlice = createSlice({
       state.voiceCommandBackendSettings = action.payload;
     },
     setInitState: (state, action) => {
+      console.log(action.payload);
       state.language = action.payload.language;
       state.theme = action.payload.theme;
       state.voiceCommandBackends = action.payload.voiceCommandBackends;

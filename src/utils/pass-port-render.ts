@@ -2,7 +2,7 @@ let portNumber = -1;
 
 async function initPortNumber() {
     try {
-        const port = await (window as any).Electron.fetchPort();
+        const port = await window.electron.fetchPort();
         portNumber = port;
         console.log(portNumber);
     } catch (error) {

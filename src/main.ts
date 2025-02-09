@@ -2,6 +2,7 @@
 
 import { app, BrowserWindow } from 'electron';
 import path from 'path';
+import { spawn } from 'child_process';
 
 import portfinder from 'portfinder';
 
@@ -14,10 +15,10 @@ const createWindow = () => {
   // Create the browser window.
   
   const mainWindow = new BrowserWindow({
-    width: 1350,
+    width: 800,
     height: 600,
-    minHeight: 600,
-    minWidth: 1350,
+    minHeight: 800,
+    minWidth: 600,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
     },
@@ -66,14 +67,13 @@ app.whenReady().then(() => {
       // raise electron error
       throw err;
     }
-    // global.python_port = port;
+    global.python_port = port;
     global.endpoint_url = `http://localhost:${port}`;
     console.log(`Python server endpoint: ${global.endpoint_url}`);
     const venvPath = path.join(__dirname, "../../pyvenv/"); 
     let python_EXEC_CMD = app.isPackaged ? path.join(venvPath, 'Scripts', 'python.exe') : "python " + path.join(__dirname, "../../src-py/main.py");
     python_EXEC_CMD += ` --port ${port}`;
-    console.log(python_EXEC_CMD); 
-    const pythonProcess = require('child_process').spawn(python_EXEC_CMD, {
+    const pythonProcess = spawn(python_EXEC_CMD, {
       shell: true,
     });
     pythonProcess.stdout.on('data', (data) => {
@@ -100,5 +100,5 @@ app.whenReady().then(() => {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
 import './utils/record';
-import './utils/simpleTTS';
 import './utils/pass-port';
+import './utils/store';

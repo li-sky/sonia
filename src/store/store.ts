@@ -1,35 +1,25 @@
-// src/store/store.js
 import { configureStore } from '@reduxjs/toolkit';
-import voiceCommandsReducer from '../features/voiceCommands/voiceCommandsSlice.ts';
-import otherSettingsReducer from '../features/otherSettings/otherSettingsSlice.ts';
-import { portNumber } from '../utils/pass-port-render.js';
+import voiceCommandsReducer from '../features/voiceCommands/voiceCommandsSlice';
+import otherSettingsReducer from '../features/otherSettings/otherSettingsSlice';
 
-
-const pythonMiddleware = store => next => action => {
+const electronMiddleware = store => next => action => {
   const result = next(action);
   if (action.type === 'voiceCommands/setInitState' || action.type === 'otherSettings/setInitState') {
     console.log(action.type);
   } else {
     const state = store.getState();
-    // send state to python
-    // fetch('http://localhost:'+toString(portNumber), {
-    fetch('http://localhost:'+ portNumber + '/updateState', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(state),
-    });
+    window.electron.updateState(state);
+    console.log(state);
   }
   return result;
-}
+};
 
-const store =  configureStore({
+const store = configureStore({
   reducer: {
     voiceCommands: voiceCommandsReducer,
     otherSettings: otherSettingsReducer,
-  }, 
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(pythonMiddleware)
+  },
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(electronMiddleware)
 });
 
 export type RootState = ReturnType<typeof store.getState>;

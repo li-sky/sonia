@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { CommandTypes, Command, SingleVoiceCommand  } from '../../types/CommandType.ts';
+import { CommandTypes, Command, SingleVoiceCommand  } from '../../types/CommandType';
 
 
 const voiceCommandsSlice = createSlice({
@@ -14,7 +14,7 @@ const voiceCommandsSlice = createSlice({
       }
       state.cmds.splice(action.payload.id + 1, 0, {
         id: action.payload.id + 1,
-        TriggerWord: '',
+        label: '',
         VoiceCommandList: [],
         action: '',
         commandType: CommandTypes.TextCommand
@@ -37,17 +37,14 @@ const voiceCommandsSlice = createSlice({
         state.cmds[action.payload.id].VoiceCommandList[i].id = i;
       }
     },
-    updateVoiceCommandText: (state, action) => {
-      state.cmds[action.payload.id].TriggerWord = action.payload.text;
-    },
     updateVoiceCommandAction: (state, action) => {
       state.cmds[action.payload.id].action = action.payload.action;
     },
-    updateVoiceCommandTextAudioSelector: (state, action) => {
-      state.cmds[action.payload.id].commandType = action.payload.commandType;
-    },
     setInitState(state, action) {
       return {...state, ...JSON.parse(JSON.stringify(action.payload))};
+    },
+    changeVoiceCommandLabel: (state, action) => {
+      state.cmds[action.payload.id].label = action.payload.label;
     }
   }
 });
@@ -57,9 +54,8 @@ export const {
   deleteVoiceCommand,
   addVoiceCommandSound,
   deleteVoiceCommandSound,
-  updateVoiceCommandText,
   updateVoiceCommandAction,
-  updateVoiceCommandTextAudioSelector,
+  changeVoiceCommandLabel,
   setInitState
 } = voiceCommandsSlice.actions;
 

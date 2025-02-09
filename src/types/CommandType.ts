@@ -13,7 +13,7 @@ export interface Command {
     commandType: CommandTypes;
     action: string;
     VoiceCommandList: SingleVoiceCommand[];
-    TriggerWord: string;
+    label: string;
 }
 
 export const defaultCommand: Command = {
@@ -21,7 +21,7 @@ export const defaultCommand: Command = {
     commandType: CommandTypes.VoiceCommand,
     action: '',
     VoiceCommandList: [],
-    TriggerWord: ''
+    label: ''
 }
 
 export const defaultSingleVoiceCommand: SingleVoiceCommand = {

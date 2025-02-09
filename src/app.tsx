@@ -65,7 +65,7 @@ const App = () => {
                         </div>
                     </Drawer>
 
-                    <main style={{ flexGrow: 1, padding: theme.spacing(3), marginLeft: open ? drawerWidth : closedDrawerWidth }}>
+                    <main style={{ flexGrow: 1, padding: theme.spacing(3)}}>
                         <Routes>
                             {routes.map(({ path, component: Component }) => (
                                 <Route path={path} element={<Component />} key={path} />

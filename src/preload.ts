@@ -16,5 +16,11 @@ contextBridge.exposeInMainWorld('electron', {
   },
   fetchPort: async () => {
     return await ipcRenderer.invoke('fetch-port');
+  },
+  fetchState: async () => {
+    return await ipcRenderer.invoke('fetch-state');
+  },
+  updateState: (state: any) => {
+    ipcRenderer.send('update-state', state);
   }
 });

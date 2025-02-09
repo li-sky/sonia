@@ -105,9 +105,9 @@ def readStateonProgramStart():
 
 
 if __name__ == '__main__':
-    readStateonProgramStart()
-    print('state', state)
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--port', type=int, default=5000)
-    args = parser.parse_args()
-    app.run(host='localhost', port=args.port)
+    # readStateonProgramStart()
+    # print('state', state)
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument('--port', type=int, default=5000)
+    # args = parser.parse_args()
+    # app.run(host='localhost', port=args.port)

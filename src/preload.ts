@@ -22,5 +22,11 @@ contextBridge.exposeInMainWorld('electron', {
   },
   updateState: (state: any) => {
     ipcRenderer.send('update-state', state);
-  }
+  },
+  // 新增事件订阅接口，用于接收 Python 日志
+  onPythonLog: (callback: (log: string) => void) => {
+    ipcRenderer.on('python-log', (event, data) => callback(data));
+  },
+  // 新增接口用于获取缓存的日志
+  fetchPythonLog: () => ipcRenderer.invoke('fetch-python-log')
 });

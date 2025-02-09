@@ -5,13 +5,11 @@ const store = new Store();
 
 ipcMain.on('update-state', (event, state) => {
         store.set('state', state);
-        console.log('state updated');
         event.reply('state-updated');
     }
 );
 
 ipcMain.handle('fetch-state', (event, data) => {
-    console.log('state fetched');
     return store.get('state');
 });
 

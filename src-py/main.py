@@ -10,6 +10,7 @@
 # port: --port arg
 
 import os
+import time
 import sys
 import argparse
 import json
@@ -111,3 +112,9 @@ if __name__ == '__main__':
     # parser.add_argument('--port', type=int, default=5000)
     # args = parser.parse_args()
     # app.run(host='localhost', port=args.port)
+    i = 0
+    while True:
+        i += 1
+        print('i', i)
+        sys.stdout.flush()
+        time.sleep(1)

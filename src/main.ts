@@ -1,10 +1,12 @@
 // import installExtension, { REDUX_DEVTOOLS, REACT_DEVELOPER_TOOLS } from 'electron-devtools-assembler';
 
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import { spawn } from 'child_process';
 
 import portfinder from 'portfinder';
+
+let pythonLogCache: string[] = []; // 新增全局日志缓存变量
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -30,6 +32,13 @@ const createWindow = () => {
   } else {
     mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
   }
+
+  // 页面加载完成后，将所有缓存日志发送给窗口
+  mainWindow.webContents.on('did-finish-load', () => {
+    pythonLogCache.forEach(log => {
+      mainWindow.webContents.send('python-log', log);
+    });
+  });
 
   // Open the DevTools.
   if (!app.isPackaged) {
@@ -76,11 +85,27 @@ app.whenReady().then(() => {
     const pythonProcess = spawn(python_EXEC_CMD, {
       shell: true,
     });
+    // 修改 stdout 事件，添加时间戳并缓存日志，同时发送 log 给渲染进程
     pythonProcess.stdout.on('data', (data) => {
-      console.log(`stdout: ${data}`);
+      const timestamp = new Date().toISOString();
+      const log = `${timestamp} stdout: ${data.toString()}`;
+      console.log(log);
+      pythonLogCache.push(log);
+      const windows = BrowserWindow.getAllWindows();
+      if(windows.length) {
+        windows[0].webContents.send('python-log', log);
+      }
     });
+    // 修改 stderr 事件，添加时间戳并缓存日志，同时发送 log 给渲染进程
     pythonProcess.stderr.on('data', (data) => {
-      console.error(`stderr: ${data}`);
+      const timestamp = new Date().toISOString();
+      const log = `${timestamp} stderr: ${data.toString()}`;
+      console.error(log);
+      pythonLogCache.push(log);
+      const windows = BrowserWindow.getAllWindows();
+      if(windows.length) {
+        windows[0].webContents.send('python-log', log);
+      }
     });
     pythonProcess.on('error', (error) => {
       console.error(`Failed to start Python process: ${error}`);
@@ -95,6 +120,11 @@ app.whenReady().then(() => {
   // installExtension(REACT_DEVELOPER_TOOLS)
   //     .then((name) => console.log(`Added Extension:  ${name}`))
   //     .catch((err) => console.log('An error occurred: ', err));
+});
+
+// 新增 ipcMain 处理，用于响应渲染进程请求缓存日志
+ipcMain.handle('fetch-python-log', () => {
+  return pythonLogCache;
 });
 
 // In this file you can include the rest of your app's specific main process

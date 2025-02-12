@@ -1,3 +1,7 @@
+from dotenv import load_dotenv
+load_dotenv()
+
+import os
 import torch
 import torch.nn as nn
 import torchaudio
@@ -11,20 +15,19 @@ from transformers import Wav2Vec2Model, Wav2Vec2Processor
 from collections import deque
 from threading import Lock, Thread
 import time
-import os
 import json
 
 
 # ================== 配置参数 ==================
-SAMPLE_RATE = 16000          # 模型要求的采样率
-CHUNK_MS = 5                 # 音频块时长（毫秒）
-WINDOW_SEC = 1.0             # 时间窗口长度（秒）
-PLOT_REFRESH_MS = 50         # 直方图刷新间隔(ms)，适当调大刷新间隔
-DEVICE = None                # 使用的设备，根据是否使用 DML 加速自动设置
-USE_DML = True              # 是否使用 DML 加速，需要安装 torch_directml 库
-DEBUG = True                # 是否使用调试模式
-USE_SONIA_FILE = True        # 是否使用 Sonia 保存的数据集文件
-VOICE_ENERGY_THRESHOLD = 0.1 # 语音能量阈值
+SAMPLE_RATE = int(os.getenv('SAMPLE_RATE', 16000))                             # 模型要求的采样率
+CHUNK_MS = int(os.getenv('CHUNK_MS', 5))                                       # 音频块时长（毫秒）
+WINDOW_SEC = float(os.getenv('WINDOW_SEC', 1.0))                               # 时间窗口长度（秒）
+PLOT_REFRESH_MS = int(os.getenv('PLOT_REFRESH_MS', 50))                        # 直方图刷新间隔(ms)
+DEVICE = None                                                                  # 使用的设备，根据是否使用 DML 加速自动设置
+USE_DML = os.getenv('USE_DML', 'False').lower() in ['true', '1']               # 是否使用 DML 加速
+DEBUG = os.getenv('DEBUG', 'True').lower() in ['true', '1']                    # 是否使用调试模式
+USE_SONIA_FILE = os.getenv('USE_SONIA_FILE', 'True').lower() in ['true', '1']  # 是否使用 Sonia 保存的数据集文件
+VOICE_ENERGY_THRESHOLD = float(os.getenv('VOICE_ENERGY_THRESHOLD', 0.1))       # 语音能量阈值
 
 
 # ================== 异步音频流处理类 ==================

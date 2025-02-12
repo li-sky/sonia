@@ -24,6 +24,7 @@ DEVICE = None                # 使用的设备，根据是否使用 DML 加速�
 USE_DML = False              # 是否使用 DML 加速，需要安装 torch_directml 库
 DEBUG = True                # 是否使用调试模式
 USE_SONIA_FILE = True        # 是否使用 Sonia 保存的数据集文件
+VOICE_ENERGY_THRESHOLD = 0.1 # 语音能量阈值
 
 
 # ================== 异步音频流处理类 ==================
@@ -72,6 +73,10 @@ class RealtimeKWS:
                     audio_array = list(self.audio_buffer)[-int(SAMPLE_RATE * WINDOW_SEC):]
                     audio_tensor = torch.FloatTensor(audio_array).unsqueeze(0)
             if audio_tensor is not None:
+                rms = torch.sqrt(torch.mean(audio_tensor ** 2))
+                if rms < VOICE_ENERGY_THRESHOLD:
+                    time.sleep(0.01)
+                    continue
                 # 模型推理（耗时操作移到后台线程中）
                 try:
                     features = self.model(audio_tensor.to(DEVICE))
